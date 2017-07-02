@@ -1,0 +1,61 @@
+输入文件有一系列的行，每行一个命令。看例子文件可以更好的理解。每一行有如下格式。注意你并不需要一次全部实现这些，可以先实现为了调试光线追踪器的视角（摄像机控制）需要的部分，再逐步实现其它的。本页包含全部说明。
+
+# 注释。忽视#开头的内容。
+空行 空行也忽视
+命令 参数1 参数2 ... 每行开始是命令。根据命令的不同参数需不同对待
+现在讨论你需要实现的命令，和其默认参数。
+
+一般命令
+
+你应该实现如下命令：
+
+size 宽 高: size命令是第一个命令，设置图像大小。
+maxdepth 深度: 光线的最大深度（弹射次数，默认是5）。
+output 文件名: 图像输出的名字。
+摄像机命令
+
+如下设置摄像机。一般文件中只有一个摄像机。如果多于一个可以认为未定义。
+
+camera lookfromx lookfromy lookfromz lookatx lookaty lookatz upx upy upz fov 如家庭作业2中一样设置摄像机。注意fov指y方向的视角。x方向的视角由图像大小决定。世界宽高比（world aspect ratio，不同于宽和高设定图像宽高比）是1；屏幕中心的球看起来会是圆的，不是椭圆。这与图像宽高比不同。这是常用设定，但与raytracing journal不同。
+几何命令
+
+本次作业你只考虑球和三角形。与家庭作业2中不同。你先需要实现如下命令：
+
+sphere x y z 半径 定义一个球心（x，y，z）和半径的球。
+maxverts 数量 定义之后设置的顶点的最大数目。这必须在定义顶点之前设置（你的程序可能不需要这个，这只是为了方便申请数组）。
+maxvertnorms 数目 定义之后设置顶点的法向的最大数目。这必须在定义法向之前设置（你的程序可能不需要这个，这只是为了方便申请数组）。
+vertex x y z 定义一个顶点。从0开始计数。
+vertexnormal（不支持） x y z nx ny nz 定义一个顶点和法向。vertex和vertexnormal相互独立，maxverts和maxvertnorms也是。
+tri v1 v2 v3 用顶点定义三角形（顶点用vertex命令定义）。顶点是逆时针顺序。你的代码需要计算法向。
+trinormal（不支持） v1 v2 v3 用有法向的顶点定义三角形（顶点用vertexnormal命令定义）。顶点是逆时针顺序。对三角形上的点的法向，你的代码需要通过差值求得。
+提供的评分例子并不测试vertexnormal，trinormal或maxvertnorms。  因此实现带法向的三角形是可选的。但你可能想试试这些命令来得到平滑的阴影效果。 当然你需要实现vertex，tri，sphere和maxverts。
+
+变换命令
+
+你应该可以对每个几何元素和灯进行变换。这对应于OpenGL中的矩阵（modelview matrix）右乘并有相同的语义，和作业2一样。多精确的实现取决于你。至少你应该追踪当前的矩阵。当然你可以使用作业2中的实现。对于三角形，你可以简单的把它们变换到视坐标（eye coordinates）并存储。对于球，你可以把变换和它们一起存储，对光线进行逆变换再与球相交，在对节点变换。需要实现的命令有：
+
+translate x y z 平移。
+rotate x y z angle 如OpenGL中一样沿轴旋转（角度）。
+scale x y z 沿轴缩放。
+pushTransform 如OpenGL中一样把当前变换（modeling transform）推入栈。你可能想设置摄像机后就进行pushTransform来保存恒等交换（identity transformation）。
+popTransform 如OpenGL一样从栈中取出当前的变换。popTransform和pushTransform可以在每个基本元素前调用以重置变换（如果最早的摄像机变换再栈中）。
+这些和作业2中一样。
+
+灯光命令
+
+你应该实现如下命令：
+
+directional x y z r g b 和OpenGL中一样的方向光设置。（光线向量其实是(-x,-y,-z)）
+point x y z r g b 和OpenGL中一样的点光源设置。
+attenuation const linear quadratic 和OpenGL中一样设置常数项，一次和二次衰减（attenuations）参数（默认是1,0,0，无衰减）。
+ambient r g b 每个物体的环境光颜色（默认0.2,0.2,0.2)。
+这与作业2有一些不同。注意没设置环境光或衰减的话，使用默认。注意我们允许不同物体的环境光不同。  最后注意颜色中没有alpha。
+
+材质命令
+
+最终你需要实现材质命令。
+
+diffuse r g b 设置表面的漫射光。
+specular r g b 设置表面的反射光。
+shininess s 设置表面的光泽度。
+emission r g b 设置表面的辐射光。
